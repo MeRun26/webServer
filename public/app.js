@@ -9,6 +9,11 @@ document.addEventListener('click', async (event) => {
     if (newTitle !== null && newTitle !== '') {
       await edit(id, newTitle);
       event.target.closest('li').edit(newTitle);
+      
+      // const noteElement = event.target.closest('li').querySelector('.title');
+      // if (noteElement) {
+      //   noteElement.textContent = newTitle;
+      // }
     }
   }
 });
