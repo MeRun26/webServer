@@ -13,7 +13,7 @@ async function addNote(title) {
 
   notes.push(note);
 
-  await fs.writeFile(notesPath, JSON.stringify(notes));
+  await saveNotes(notes);
   console.log(chalk.bgGreen('Note was added!'));
 }
 
@@ -22,40 +22,43 @@ async function getNotes() {
   return Array.isArray(JSON.parse(notes)) ? JSON.parse(notes) : [];
 }
 
+async function saveNotes(notes) {
+  await fs.writeFile(notesPath, JSON.stringify(notes));
+}
+
 async function printNotes() {
   const notes = await getNotes();
-  return notes.map((note) => `${chalk.blue(note.id)} ${note.title}`).join('\n');
+
+  console.log(chalk.bgBlue('Here is the list of notes:'));
+  notes.forEach((note) => {
+    console.log(chalk.bgWhite(note.id), chalk.blue(note.title));
+  });
 }
 
 async function removeNote(id) {
   const notes = await getNotes();
-  const filteredNotes = notes.filter((note) => note.id !== id);
 
-  if (filteredNotes.length !== notes.length) {
-    await fs.writeFile(notesPath, JSON.stringify(filteredNotes));
-    console.log(chalk.red(`Note with id="${id}" has been removed.`));
-  } else {
-    console.log(chalk.bgYellow('Note with this ID not found!'));
-  }
+  const filtered = notes.filter((note) => note.id !== id);
+
+  await saveNotes(filtered);
+  console.log(chalk.red(`Note with id="${id}" has been removed.`));
 }
 
-async function editNote(id, newTitle) {
-  let notes = await getNotes();
-  notes = notes.map((note) => {
-    if (note.id === id) {
-      return { ...note, title: newTitle };
-    }
-    return note;
-  });
-  await fs.writeFile(notesPath, JSON.stringify(notes));
-  console.log(chalk.bgGreen(`Note with id="${id}" has been edited.`));
-  return notes;
+async function updateNote(noteData) {
+  const notes = await getNotes();
+  const index = notes.findIndex((note) => note.id === noteData.id);
+  if (index >= 0) {
+    notes[index] = { ...notes[index], ...noteData };
+    await saveNotes(notes);
+    console.log(
+      chalk.bgGreen(`Note with id="${noteData.id}" has been updated!`)
+    );
+  }
 }
 
 module.exports = {
   addNote,
   getNotes,
-  printNotes,
   removeNote,
-  editNote,
+  updateNote,
 };

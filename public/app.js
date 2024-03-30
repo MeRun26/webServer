@@ -1,37 +1,35 @@
-document.addEventListener('click', async (event) => {
+document.addEventListener('click', (event) => {
   if (event.target.dataset.type === 'remove') {
     const id = event.target.dataset.id;
-    await remove(id);
-    event.target.closest('li').remove();
-  } else if (event.target.dataset.type === 'edit') {
+
+    remove(id).then(() => {
+      event.target.closest('li').remove();
+    });
+  }
+
+  if (event.target.dataset.type === 'edit') {
     const id = event.target.dataset.id;
-    const newTitle = prompt('Enter new title:').trim();
-    if (newTitle !== null && newTitle !== '') {
-      await edit(id, newTitle);
-      event.target.closest('li').edit(newTitle);
-      
-      // const noteElement = event.target.closest('li').querySelector('.title');
-      // if (noteElement) {
-      //   noteElement.textContent = newTitle;
-      // }
+    const title = event.target.dataset.title;
+    const newTitle = prompt('Введите новое название', title);
+    if (newTitle !== null) {
+      update({ id, title: newTitle }).then(() => {
+        event.target.closest('li').querySelector('span').innerText = newTitle;
+      });
     }
   }
 });
 
-async function remove(id) {
-  await fetch(`/${id}`, { method: 'DELETE' });
-}
-
-async function edit(id, newTitle) {
-  const response = await fetch(`/${id}`, {
+async function update(newNote) {
+  await fetch(`/${newNote.id}`, {
     method: 'PUT',
     headers: {
+      Accept: 'application/json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ title: newTitle }),
+    body: JSON.stringify(newNote),
   });
+}
 
-  if (!response.ok) {
-    throw new Error('Failed to edit note');
-  }
+async function remove(id) {
+  await fetch(`/${id}`, { method: 'DELETE' });
 }
